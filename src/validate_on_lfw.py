@@ -135,6 +135,8 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
     eer = brentq(lambda x: 1. - x - interpolate.interp1d(fpr, tpr)(x), 0., 1.)
     print('Equal Error Rate (EER): %1.3f' % eer)
 
+    lfw.export_result(embeddings, image_paths, actual_issame, "/home/lijc08/deeplearning/lfw/pairs", distance_metric)
+
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
@@ -151,13 +153,13 @@ def parse_arguments(argv):
                         help='The file containing the pairs to use for validation.')
     parser.add_argument('--lfw_nrof_folds', type=int, default=10,
                         help='Number of folds to use for cross validation. Mainly used for testing.')
-    parser.add_argument('--distance_metric', type=int, default=1,
+    parser.add_argument('--distance_metric', type=int, default=0,
                         help='Distance metric  0:euclidian, 1:cosine similarity.')
-    parser.add_argument('--use_flipped_images', default=True,
+    parser.add_argument('--use_flipped_images', default=False,
                         help='Concatenates embeddings for the image and its horizontally flipped counterpart.', action='store_true')
-    parser.add_argument('--subtract_mean', default=True,
+    parser.add_argument('--subtract_mean', default=False,
                         help='Subtract feature mean before calculating distance.', action='store_true')
-    parser.add_argument('--use_fixed_image_standardization', default=True,
+    parser.add_argument('--use_fixed_image_standardization', default=False,
                         help='Performs fixed standardization of images.', action='store_true')
     return parser.parse_args(argv)
 
