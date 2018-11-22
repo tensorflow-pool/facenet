@@ -147,8 +147,8 @@ def main(args):
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--input_dir', type=str, default="/home/lijc08/deeplearning/lfw/raw", help='Directory with unaligned images.')
-    parser.add_argument('--output_dir', type=str, default="/home/lijc08/deeplearning/lfw/lfw_mtcnnpy_160", help='Directory with aligned face thumbnails.')
+    parser.add_argument('--input_dir', type=str, default="/home/lijc08/datasets/CASIA-WebFace/raw", help='Directory with unaligned images.')
+    parser.add_argument('--output_dir', type=str, default="/home/lijc08/datasets/CASIA-WebFace/casia_maxpy_mtcnnpy_160", help='Directory with aligned face thumbnails.')
     parser.add_argument('--image_size', type=int, default=160,
                         help='Image size (height, width) in pixels.')
     parser.add_argument('--margin', type=int, default=32,
