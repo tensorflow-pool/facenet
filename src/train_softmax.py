@@ -491,12 +491,12 @@ def parse_arguments(argv):
     parser.add_argument('--models_base_dir', type=str,
                         help='Directory where to write trained models and checkpoints.', default='~/models/facenet')
     parser.add_argument('--gpu_memory_fraction', type=float,
-                        help='Upper bound on the amount of GPU memory that will be used by the process.', default=0.5)
+                        help='Upper bound on the amount of GPU memory that will be used by the process.', default=0.75)
     parser.add_argument('--pretrained_model', type=str,
                         help='Load a pretrained model before training starts.')
     parser.add_argument('--data_dir', type=str,
                         help='Path to the data directory containing aligned face patches.',
-                        default='~/datasets/casia/casia_maxpy_mtcnnalign_182_160')
+                        default='~/datasets/CASIA-WebFace/casia_maxpy_mtcnnpy_160')
     parser.add_argument('--model_def', type=str,
                         help='Model definition. Points to a module containing the definition of the inference graph.', default='models.inception_resnet_v1')
     parser.add_argument('--max_nrof_epochs', type=int,
@@ -508,26 +508,26 @@ def parse_arguments(argv):
     parser.add_argument('--epoch_size', type=int,
                         help='Number of batches per epoch.', default=1000)
     parser.add_argument('--embedding_size', type=int,
-                        help='Dimensionality of the embedding.', default=128)
-    parser.add_argument('--random_crop',
+                        help='Dimensionality of the embedding.', default=512)
+    parser.add_argument('--random_crop', default=True,
                         help='Performs random cropping of training images. If false, the center image_size pixels from the training images are used. ' +
                              'If the size of the images in the data directory is equal to image_size no cropping is performed', action='store_true')
-    parser.add_argument('--random_flip',
+    parser.add_argument('--random_flip', default=True,
                         help='Performs random horizontal flipping of training images.', action='store_true')
-    parser.add_argument('--random_rotate',
+    parser.add_argument('--random_rotate', default=False,
                         help='Performs random rotations of training images.', action='store_true')
-    parser.add_argument('--use_fixed_image_standardization',
+    parser.add_argument('--use_fixed_image_standardization', default=True,
                         help='Performs fixed standardization of images.', action='store_true')
     parser.add_argument('--keep_probability', type=float,
-                        help='Keep probability of dropout for the fully connected layer(s).', default=1.0)
+                        help='Keep probability of dropout for the fully connected layer(s).', default=0.8)
     parser.add_argument('--weight_decay', type=float,
-                        help='L2 weight regularization.', default=0.0)
+                        help='L2 weight regularization.', default=5e-4)
     parser.add_argument('--center_loss_factor', type=float,
                         help='Center loss factor.', default=0.0)
     parser.add_argument('--center_loss_alfa', type=float,
                         help='Center update rate for center loss.', default=0.95)
     parser.add_argument('--prelogits_norm_loss_factor', type=float,
-                        help='Loss based on the norm of the activations in the prelogits layer.', default=0.0)
+                        help='Loss based on the norm of the activations in the prelogits layer.', default=5e-4)
     parser.add_argument('--prelogits_norm_p', type=float,
                         help='Norm to use for prelogits norm loss.', default=1.0)
     parser.add_argument('--prelogits_hist_max', type=float,
@@ -550,7 +550,7 @@ def parse_arguments(argv):
     parser.add_argument('--log_histograms',
                         help='Enables logging of weight/bias histograms in tensorboard.', action='store_true')
     parser.add_argument('--learning_rate_schedule_file', type=str,
-                        help='File containing the learning rate schedule that is used when learning_rate is set to to -1.', default='data/learning_rate_schedule.txt')
+                        help='File containing the learning rate schedule that is used when learning_rate is set to to -1.', default='../data/learning_rate_schedule_classifier_casia.txt')
     parser.add_argument('--filter_filename', type=str,
                         help='File containing image data used for dataset filtering', default='')
     parser.add_argument('--filter_percentile', type=float,
@@ -560,7 +560,7 @@ def parse_arguments(argv):
     parser.add_argument('--validate_every_n_epochs', type=int,
                         help='Number of epoch between validation', default=5)
     parser.add_argument('--validation_set_split_ratio', type=float,
-                        help='The ratio of the total dataset to use for validation', default=0.0)
+                        help='The ratio of the total dataset to use for validation', default=0.05)
     parser.add_argument('--min_nrof_val_images_per_class', type=float,
                         help='Classes with fewer images will be removed from the validation set', default=0)
 
