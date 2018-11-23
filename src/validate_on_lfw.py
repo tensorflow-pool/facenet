@@ -46,6 +46,8 @@ import lfw
 
 def main(args):
     with tf.Graph().as_default():
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.7)
+        sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
         with tf.Session() as sess:
             # Read the file containing the pairs used for testing
             pairs = lfw.read_pairs(os.path.expanduser(args.lfw_pairs))
@@ -59,7 +61,7 @@ def main(args):
             control_placeholder = tf.placeholder(tf.int32, shape=(None, 1), name='control')
             phase_train_placeholder = tf.placeholder(tf.bool, name='phase_train')
 
-            nrof_preprocess_threads = 4
+            nrof_preprocess_threads = 2
             image_size = (args.image_size, args.image_size)
             eval_input_queue = data_flow_ops.FIFOQueue(capacity=2000000,
                                                        dtypes=[tf.string, tf.int32, tf.int32],
@@ -135,21 +137,21 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
     eer = brentq(lambda x: 1. - x - interpolate.interp1d(fpr, tpr)(x), 0., 1.)
     print('Equal Error Rate (EER): %1.3f' % eer)
 
-    lfw.export_result(embeddings, image_paths, actual_issame, "/home/lijc08/deeplearning/lfw/pairs", distance_metric)
+    lfw.export_result(embeddings, image_paths, actual_issame, "~/datasets/lfw/pairs_20181122", distance_metric)
 
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--lfw_dir', type=str, default="/home/lijc08/deeplearning/lfw/lfw_mtcnnpy_160",
+    parser.add_argument('--lfw_dir', type=str, default="~/datasets/lfw/lfw_mtcnnpy_160",
                         help='Path to the data directory containing aligned LFW face patches.')
     parser.add_argument('--lfw_batch_size', type=int, default=100,
                         help='Number of images to process in a batch in the LFW test set.')
-    parser.add_argument('--model', type=str, default="~/deeplearning/model/facenet/20180402-114759.pb",
+    parser.add_argument('--model', type=str, default="~/models/facenet/20181122-134405/model-20181122-134405.pb",
                         help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file')
     parser.add_argument('--image_size', type=int, default=160,
                         help='Image size (height, width) in pixels.')
-    parser.add_argument('--lfw_pairs', type=str, default='/home/lijc08/deeplearning/lfw/raw/pairs.txt',
+    parser.add_argument('--lfw_pairs', type=str, default='~/datasets/lfw/raw/pairs.txt',
                         help='The file containing the pairs to use for validation.')
     parser.add_argument('--lfw_nrof_folds', type=int, default=10,
                         help='Number of folds to use for cross validation. Mainly used for testing.')

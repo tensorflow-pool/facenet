@@ -53,6 +53,8 @@ def export_result(embeddings, image_paths, actual_issame, resultPath, distance_m
     embeddings2 = embeddings[1::2]
     image_paths1 = image_paths[0::2]
     image_paths2 = image_paths[1::2]
+    resultPath = os.path.expanduser(resultPath)
+    os.mkdir(resultPath)
     dist = facenet.distance(embeddings1, embeddings2, distance_metric)
     for index, res in enumerate(actual_issame):
         print("index %s dis %s res %s" % (index, dist[index], res))
