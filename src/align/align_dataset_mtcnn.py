@@ -147,15 +147,15 @@ def main(args):
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--input_dir', type=str, default="/home/lijc08/datasets/CASIA-WebFace/raw", help='Directory with unaligned images.')
-    parser.add_argument('--output_dir', type=str, default="/home/lijc08/datasets/CASIA-WebFace/casia_maxpy_mtcnnpy_160", help='Directory with aligned face thumbnails.')
+    parser.add_argument('--input_dir', type=str, default="~/datasets/vgg_face_2/train", help='Directory with unaligned images.')
+    parser.add_argument('--output_dir', type=str, default="~/datasets/vgg_face_2/train_160", help='Directory with aligned face thumbnails.')
     parser.add_argument('--image_size', type=int, default=160,
                         help='Image size (height, width) in pixels.')
     parser.add_argument('--margin', type=int, default=32,
                         help='Margin for the crop around the bounding box (height, width) in pixels.')
     parser.add_argument('--random_order', default=True,
                         help='Shuffles the order of images to enable alignment using multiple processes.', action='store_true')
-    parser.add_argument('--gpu_memory_fraction', type=float, default=0.25,
+    parser.add_argument('--gpu_memory_fraction', type=float, default=0.2,
                         help='Upper bound on the amount of GPU memory that will be used by the process.')
     parser.add_argument('--detect_multiple_faces', type=bool, default=False,
                         help='Detect and align multiple faces per image.')

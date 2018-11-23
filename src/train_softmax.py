@@ -160,6 +160,9 @@ def main(args):
         # Add center loss
         prelogits_center_loss, _ = facenet.center_loss(prelogits, label_batch, args.center_loss_alfa, nrof_classes)
         tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, prelogits_center_loss * args.center_loss_factor)
+        # 鉴于prelogits_center_loss的梯度是手动更新，所以不能加入losses中，以防梯度再次被更新
+        # tf.add_to_collection('losses', prelogits_center_loss)
+        tf.summary.scalar("prelogits_center_loss", prelogits_center_loss)
 
         learning_rate = tf.train.exponential_decay(learning_rate_placeholder, global_step,
                                                    args.learning_rate_decay_epochs * args.epoch_size, args.learning_rate_decay_factor, staircase=True)
@@ -533,7 +536,7 @@ def parse_arguments(argv):
     parser.add_argument('--prelogits_hist_max', type=float,
                         help='The max value for the prelogits histogram.', default=10.0)
     parser.add_argument('--optimizer', type=str, choices=['ADAGRAD', 'ADADELTA', 'ADAM', 'RMSPROP', 'MOM'],
-                        help='The optimization algorithm to use', default='ADAGRAD')
+                        help='The optimization algorithm to use', default='ADAM')
     parser.add_argument('--learning_rate', type=float,
                         help='Initial learning rate. If set to a negative value a learning rate ' +
                              'schedule can be specified in the file "learning_rate_schedule.txt"', default=0.1)
@@ -547,7 +550,7 @@ def parse_arguments(argv):
                         help='Random seed.', default=666)
     parser.add_argument('--nrof_preprocess_threads', type=int,
                         help='Number of preprocessing (data loading and augmentation) threads.', default=4)
-    parser.add_argument('--log_histograms',
+    parser.add_argument('--log_histograms', default=True,
                         help='Enables logging of weight/bias histograms in tensorboard.', action='store_true')
     parser.add_argument('--learning_rate_schedule_file', type=str,
                         help='File containing the learning rate schedule that is used when learning_rate is set to to -1.', default='../data/learning_rate_schedule_classifier_casia.txt')
