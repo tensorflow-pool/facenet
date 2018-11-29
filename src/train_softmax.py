@@ -1,3 +1,4 @@
+# coding=utf-8
 """Training a face recognizer with TensorFlow using softmax cross entropy loss
 """
 # MIT License
@@ -185,6 +186,15 @@ def main(args):
         train_op = facenet.train(total_loss, global_step, args.optimizer,
                                  learning_rate, args.moving_average_decay, tf.global_variables(), args.log_histograms)
 
+        tf.summary.histogram("prelogits_norm", prelogits_norm)
+        tf.summary.scalar("train/total", total_loss)
+        tf.summary.scalar("train/cross_entropy_mean", cross_entropy_mean)
+        tf.summary.scalar("train/reg_losses", tf.add_n(regularization_losses))
+        tf.summary.scalar("train/prelogits_norm", prelogits_norm)
+        tf.summary.scalar("train/prelogits_center_loss", prelogits_center_loss)
+        tf.summary.scalar('train/learning_rate', learning_rate)
+        tf.summary.scalar('train/accuracy', accuracy)
+
         # Create a saver
         saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=3)
 
@@ -229,7 +239,6 @@ def main(args):
                 'prelogits_hist': np.zeros((args.max_nrof_epochs, 1000), np.float32),
             }
             for epoch in range(1, args.max_nrof_epochs + 1):
-                step = sess.run(global_step, feed_dict=None)
                 # Train for one epoch
                 t = time.time()
                 cont = train(args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_op, image_paths_placeholder, labels_placeholder,
@@ -243,10 +252,11 @@ def main(args):
                     break
 
                 t = time.time()
+                step = sess.run(global_step, feed_dict=None)
                 if len(val_image_list) > 0 and ((epoch - 1) % args.validate_every_n_epochs == args.validate_every_n_epochs - 1 or epoch == args.max_nrof_epochs):
                     validate(args, sess, epoch, val_image_list, val_label_list, enqueue_op, image_paths_placeholder, labels_placeholder, control_placeholder,
                              phase_train_placeholder, batch_size_placeholder,
-                             stat, total_loss, regularization_losses, cross_entropy_mean, accuracy, args.validate_every_n_epochs, args.use_fixed_image_standardization)
+                             stat, total_loss, regularization_losses, cross_entropy_mean, accuracy, args.validate_every_n_epochs, args.use_fixed_image_standardization, summary_writer, step)
                 stat['time_validate'][epoch - 1] = time.time() - t
 
                 # Save variables and the metagraph if it doesn't exist already
@@ -364,7 +374,8 @@ def train(args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_o
 
 def validate(args, sess, epoch, image_list, label_list, enqueue_op, image_paths_placeholder, labels_placeholder, control_placeholder,
              phase_train_placeholder, batch_size_placeholder,
-             stat, loss, regularization_losses, cross_entropy_mean, accuracy, validate_every_n_epochs, use_fixed_image_standardization):
+             stat, loss, regularization_losses, cross_entropy_mean, accuracy, validate_every_n_epochs, use_fixed_image_standardization,
+             summary_writer, step):
     print('Running forward pass on validation set')
 
     nrof_batches = len(label_list) // args.lfw_batch_size
@@ -397,6 +408,14 @@ def validate(args, sess, epoch, image_list, label_list, enqueue_op, image_paths_
     stat['val_loss'][val_index] = np.mean(loss_array)
     stat['val_xent_loss'][val_index] = np.mean(xent_array)
     stat['val_accuracy'][val_index] = np.mean(accuracy_array)
+
+    summary = tf.Summary()
+    # pylint: disable=maybe-no-member
+    summary.value.add(tag='validate/val_loss', simple_value=np.mean(loss_array))
+    summary.value.add(tag='validate/val_xent_loss', simple_value=np.mean(xent_array))
+    summary.value.add(tag='validate/val_accuracy', simple_value=np.mean(accuracy_array))
+    summary.value.add(tag='time/validate', simple_value=duration)
+    summary_writer.add_summary(summary, step)
 
     print('Validation Epoch: %d\tTime %.3f\tLoss %2.3f\tXent %2.3f\tAccuracy %2.3f' %
           (epoch, duration, np.mean(loss_array), np.mean(xent_array), np.mean(accuracy_array)))
@@ -512,14 +531,14 @@ def parse_arguments(argv):
                         help='Number of batches per epoch.', default=1000)
     parser.add_argument('--embedding_size', type=int,
                         help='Dimensionality of the embedding.', default=512)
-    parser.add_argument('--random_crop', default=True,
+    parser.add_argument('--random_crop', default=False,
                         help='Performs random cropping of training images. If false, the center image_size pixels from the training images are used. ' +
                              'If the size of the images in the data directory is equal to image_size no cropping is performed', action='store_true')
-    parser.add_argument('--random_flip', default=True,
+    parser.add_argument('--random_flip', default=False,
                         help='Performs random horizontal flipping of training images.', action='store_true')
     parser.add_argument('--random_rotate', default=False,
                         help='Performs random rotations of training images.', action='store_true')
-    parser.add_argument('--use_fixed_image_standardization', default=True,
+    parser.add_argument('--use_fixed_image_standardization', default=False,
                         help='Performs fixed standardization of images.', action='store_true')
     parser.add_argument('--keep_probability', type=float,
                         help='Keep probability of dropout for the fully connected layer(s).', default=0.8)
@@ -569,9 +588,9 @@ def parse_arguments(argv):
 
     # Parameters for validation on LFW
     parser.add_argument('--lfw_pairs', type=str,
-                        help='The file containing the pairs to use for validation.', default='data/pairs.txt')
+                        help='The file containing the pairs to use for validation.', default='~/datasets/lfw/raw/pairs.txt')
     parser.add_argument('--lfw_dir', type=str,
-                        help='Path to the data directory containing aligned face patches.', default='')
+                        help='Path to the data directory containing aligned face patches.', default='~/datasets/lfw/lfw_mtcnnpy_160')
     parser.add_argument('--lfw_batch_size', type=int,
                         help='Number of images to process in a batch in the LFW test set.', default=100)
     parser.add_argument('--lfw_nrof_folds', type=int,
